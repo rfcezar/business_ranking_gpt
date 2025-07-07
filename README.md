@@ -5,7 +5,7 @@
 All files are placed in a flat directory. The contents of this package include:
 
 - `code.R` — Main R script to replicate all empirical results and figures.
-- - `dyads.csv` — Full classification dataset generated from 20,000 pairwise GPT comparisons. Due to file size limits, this file is not included here. You can download it from:  https://drive.google.com/file/d/1RX_gLZ8oHhF4CVqPTZ6QvgDV9aPs9OKP/view?usp=sharing
+- `dyads.csv` — Full classification dataset generated from 20,000 pairwise GPT comparisons. Due to file size limits, this file is not included here. You can download it from:  https://drive.google.com/file/d/1RX_gLZ8oHhF4CVqPTZ6QvgDV9aPs9OKP/view?usp=sharing
 - `btm.stan` — Stan model specification for Bayesian estimation of Bradley-Terry models using pairwise comparison data.  
 - `alpha_summary.csv` — Summary of Bradley-Terry estimated positions per organization.  
 - `dyads_sampled_1000.csv` — Sample of pairwise comparisons used in the robustness tests.  
