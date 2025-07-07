@@ -20,7 +20,8 @@ library(reshape2)
 library(BradleyTerry2)
 library(stargazer)
 
-# For results of initial classification, load 'dyads.csv'. 
+# For results of initial classification, load 'dyads.csv' available at: 
+# https://drive.google.com/file/d/1RX_gLZ8oHhF4CVqPTZ6QvgDV9aPs9OKP/view?usp=sharing
 
 # === 2. Setting OpenAI and Serper API keys ===
 
