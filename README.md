@@ -30,8 +30,6 @@ The script will:
 
 ## Required R Packages
 
-## Required R Packages
-
 The analysis depends on the following R packages:
 
 - `rstan`  
