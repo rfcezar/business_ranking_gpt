@@ -19,7 +19,7 @@ To install the required R packages, open R and run the code block below before e
 
 1. Open R or RStudio.  
 2. Set the working directory to the folder where this `README.md` is located (i.e., the root of the replication package).  
-3. Open and execute the script `analysis.R`.
+3. Open and execute the script `code.R`.
 
 The script will:
 
