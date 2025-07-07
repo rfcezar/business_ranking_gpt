@@ -9,7 +9,7 @@ All files are placed in a flat directory. The contents of this package include:
 - `btm.stan` — Stan model specification for Bayesian estimation of Bradley-Terry models using pairwise comparison data.  
 - `alpha_summary.csv` — Summary of Bradley-Terry estimated positions per organization.  
 - `dyads_sampled_1000.csv` — Sample of pairwise comparisons used in the robustness tests.  
-- `results_poe.csv` — Output with PoE tests results for ``gpt-4.1-mini,” ``gpt-4.1-nano,” ``gpt-4o,” and ``gpt-4o-mini.”  
+- `results_poe.csv` — Output with PoE tests results for `gpt-4.1-mini`,`gpt-4.1-nano`,`gpt-4o`, and `gpt-4o-mini`.  
 - `session_info.txt` — Software environment information for reproducibility.  
 - `business_ranking_gpt.Rproj` — RStudio project file.  
 
