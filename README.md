@@ -1,4 +1,4 @@
-# Replication Package – *business_ranking_gpt*
+# Replication Package – *Ranking Business Trade Preferences Using GPT*
 
 ## Structure
 
