@@ -987,7 +987,7 @@ find_transitivity_violations_with_rate <- function(df) {
 # Run on dyads_filtered
 results <- find_transitivity_violations_with_rate(dyads_filtered)
 
-# Top 20 orgs by transitivity violation rate
+# Top orgs by transitivity violation rate
 top_orgs <- results$proportion_df %>% slice_max(rate, n = 40)
 
 # Plot
