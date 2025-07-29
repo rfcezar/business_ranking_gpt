@@ -1037,10 +1037,6 @@ stargazer(
   title = "OLS and WLS Regressions (Clustered by NAICS)",
   column.labels = c("OLS", "WLS", "OLS", "WLS", "OLS", "WLS"),
   dep.var.labels = "BT Score",
-  covariate.labels = c(
-    "Average Text Length",
-    "Org: Cross", "Org: Large", "Org: Sector", "Org: Tech"
-  ),
   se = se_list,
   omit.stat = c("f", "ser"),
   digits = 2,
