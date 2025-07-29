@@ -749,7 +749,7 @@ ggplot(df_agreement, aes(x = Variant_1, y = Variant_2, fill = Agreement)) +
   labs(title = "Correspondence Matrix", x = "Prompt Variant", y = "Prompt Variant", fill = "Agreement") +
   theme_minimal()
 
-# 4. Run Product-of-Experts using multiple GPT models
+# === 4. Run Product-of-Experts using multiple GPT models ===
 # For replication, load 'poe.csv'.
 
 # Define models 
@@ -873,6 +873,133 @@ write.csv(results_poe, "poe.csv")
 
 # Summarize PoE 
 summary(results_poe$poe_prob)
+
+# === 5. Check for transitivity violations ===
+
+test_transitivity <- function(df) {
+  library(dplyr)
+  
+  # Filtra comparações válidas
+  df_valid <- df %>%
+    filter(text_comparison %in% c("A", "B")) %>%
+    mutate(
+      winner = ifelse(text_comparison == "A", name_A, name_B),
+      loser  = ifelse(text_comparison == "A", name_B, name_A)
+    ) %>%
+    select(winner, loser)
+  
+  # Cria um dicionário: quem venceu quem
+  win_dict <- split(df_valid$loser, df_valid$winner)
+  
+  orgs <- unique(c(df_valid$winner, df_valid$loser))
+  violations <- 0
+  total_checked <- 0
+  
+  for (A in orgs) {
+    Bs <- win_dict[[A]]
+    if (is.null(Bs)) next
+    
+    for (B in Bs) {
+      Cs <- win_dict[[B]]
+      if (is.null(Cs)) next
+      
+      for (C in Cs) {
+        if (C == A) next  # ignora ciclos triviais
+        total_checked <- total_checked + 1
+        if (!is.null(win_dict[[C]]) && A %in% win_dict[[C]]) {
+          violations <- violations + 1
+        }
+      }
+    }
+  }
+  
+  cat("Verified Triplets:", total_checked, "\n")
+  cat("Transitivity Violations:", violations, "\n")
+  cat("Violations Proportions:", round(violations / total_checked, 4), "\n")
+}
+
+test_transitivity(dyads_filtered)
+
+# Find percentage of violations 
+
+find_transitivity_violations_with_rate <- function(df) {
+  df_valid <- df %>%
+    filter(text_comparison %in% c("A", "B")) %>%
+    mutate(
+      winner = ifelse(text_comparison == "A", name_A, name_B),
+      loser  = ifelse(text_comparison == "A", name_B, name_A)
+    ) %>%
+    select(winner, loser)
+  
+  # Create lookup: who beat whom
+  win_dict <- split(df_valid$loser, df_valid$winner)
+  orgs <- unique(c(df_valid$winner, df_valid$loser))
+  
+  # Initialize
+  violations <- list()
+  count <- 1
+  involvement <- c()
+  
+  # Search for intransitive triads: A > B > C but C > A
+  for (A in orgs) {
+    Bs <- win_dict[[A]]
+    if (is.null(Bs)) next
+    for (B in Bs) {
+      Cs <- win_dict[[B]]
+      if (is.null(Cs)) next
+      for (C in Cs) {
+        if (C == A) next
+        if (!is.null(win_dict[[C]]) && A %in% win_dict[[C]]) {
+          violations[[count]] <- data.frame(A = A, B = B, C = C)
+          involvement <- c(involvement, A, B, C)
+          count <- count + 1
+        }
+      }
+    }
+  }
+  
+  df_violations <- bind_rows(violations)
+  
+  # Count how many times each org appears in any violation
+  viol_counts <- as.data.frame(table(involvement)) %>%
+    rename(organization = involvement, violations = Freq)
+  
+  # Count total number of comparisons involving each org
+  compare_counts <- df %>%
+    select(name_A, name_B) %>%
+    pivot_longer(everything(), values_to = "organization") %>%
+    count(organization, name = "comparisons")
+  
+  # Join and calculate violation rate
+  results <- full_join(viol_counts, compare_counts, by = "organization") %>%
+    mutate(
+      violations = ifelse(is.na(violations), 0, violations),
+      rate = violations / comparisons
+    ) %>%
+    arrange(desc(rate))
+  
+  return(list(
+    violations_df = df_violations,
+    proportion_df = results
+  ))
+}
+
+# Run on dyads_filtered
+results <- find_transitivity_violations_with_rate(dyads_filtered)
+
+# Top 20 orgs by transitivity violation rate
+top_orgs <- results$proportion_df %>% slice_max(rate, n = 40)
+
+# Plot
+ggplot(top_orgs, aes(x = reorder(organization, rate), y = rate)) +
+  geom_col(fill = "blue") +
+  coord_flip() +
+  labs(
+    title = "Transitivity Violation Rate by Organization",
+    x = NULL,
+    y = "Proportion of Violations"
+  ) +
+  theme_minimal()
 
 ################################################################################
 ############################## END OF SCRIPT ###################################
