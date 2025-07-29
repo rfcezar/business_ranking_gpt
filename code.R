@@ -10,6 +10,7 @@ cat("\014")
 
 library(rstan)
 library(dplyr)
+library(clubSandwich)
 library(ggplot2)
 library(httr)
 library(jsonlite)
@@ -879,7 +880,6 @@ summary(results_poe$poe_prob)
 test_transitivity <- function(df) {
   library(dplyr)
   
-  # Filtra comparações válidas
   df_valid <- df %>%
     filter(text_comparison %in% c("A", "B")) %>%
     mutate(
@@ -888,7 +888,6 @@ test_transitivity <- function(df) {
     ) %>%
     select(winner, loser)
   
-  # Cria um dicionário: quem venceu quem
   win_dict <- split(df_valid$loser, df_valid$winner)
   
   orgs <- unique(c(df_valid$winner, df_valid$loser))
@@ -1000,6 +999,55 @@ ggplot(top_orgs, aes(x = reorder(organization, rate), y = rate)) +
     y = "Proportion of Violations"
   ) +
   theme_minimal()
+
+## 6. Check for independence between observations
+# Run OLS and WLS regressions accounting for uncertainty and comment length 
+
+ols_len <- lm(btm_est ~ avg_length, data = alpha_summary)
+wls_len <- lm(btm_est ~ avg_length, data = alpha_summary, weights = 1 / se_btm^2)
+
+ols_type <- lm(btm_est ~ org_type, data = alpha_summary)
+wls_type <- lm(btm_est ~ org_type, data = alpha_summary, weights = 1 / se_btm^2)
+
+ols_both <- lm(btm_est ~ org_type + avg_length, data = alpha_summary)
+wls_both <- lm(btm_est ~ org_type + avg_length, data = alpha_summary, weights = 1 / se_btm^2)
+
+# Cluster-robust standard errors clustered by naics
+se_ols_len   <- coef_test(ols_len, vcov = "CR2", cluster = alpha_summary$naics, test = "naive-t")
+se_wls_len   <- coef_test(wls_len, vcov = "CR2", cluster = alpha_summary$naics, test = "naive-t")
+se_ols_type  <- coef_test(ols_type, vcov = "CR2", cluster = alpha_summary$naics, test = "naive-t")
+se_wls_type  <- coef_test(wls_type, vcov = "CR2", cluster = alpha_summary$naics, test = "naive-t")
+se_ols_both  <- coef_test(ols_both, vcov = "CR2", cluster = alpha_summary$naics, test = "naive-t")
+se_wls_both  <- coef_test(wls_both, vcov = "CR2", cluster = alpha_summary$naics, test = "naive-t")
+
+# Collect robust SEs
+se_list <- list(
+  se_ols_len$SE,
+  se_wls_len$SE,
+  se_ols_type$SE,
+  se_wls_type$SE,
+  se_ols_both$SE,
+  se_wls_both$SE
+)
+
+# Stargazer table
+stargazer(
+  ols_len, wls_len, ols_type, wls_type, ols_both, wls_both,
+  type = "latex",
+  title = "OLS and WLS Regressions (Clustered by NAICS)",
+  column.labels = c("OLS", "WLS", "OLS", "WLS", "OLS", "WLS"),
+  dep.var.labels = "BT Score",
+  covariate.labels = c(
+    "Average Text Length",
+    "Org: Cross", "Org: Large", "Org: Sector", "Org: Tech"
+  ),
+  se = se_list,
+  omit.stat = c("f", "ser"),
+  digits = 2,
+  align = TRUE,
+  no.space = TRUE
+)
+
 
 ################################################################################
 ############################## END OF SCRIPT ###################################
